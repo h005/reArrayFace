@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    QString filename = "E:/off/4.off";
+    QString filename = "E:/off/1.off";
 
     UFface *ufface = new UFface(filename);
     ufface->unionFinal();

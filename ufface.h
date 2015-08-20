@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <set>
+#include <vector>
 
 class QString;
 
@@ -32,6 +33,9 @@ public:
     int find(int p);
     void unionFace(int p,int q);
 
+    int findCommonEdge(int p);
+    void unionFaceCommonEdge(int p,int q);
+
     void unionFinal();
     //存储不同面的不同类别
     void setCateSet();
@@ -48,10 +52,16 @@ private:
 
 private:
     std::set<int> cateSet;
+    std::set<int> cateSetCommonEdge;
+
+    std::vector<int> *cate;
+
     int *sz;
+    int *szCE;
     //存储面的顶点绕序
     int **arrayFace;
     int *id;
+    int *idCE;
     int NUM_FACE;
     char **relationGraph;
 };

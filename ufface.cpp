@@ -13,9 +13,12 @@ UFface::UFface(QString path)
     std::cout<<"read in done..."<<std::endl;
     sz = new int[NUM_FACE];
     memset(sz,0,sizeof(int)*NUM_FACE);
+    szCE = new int[NUM_FACE];
+    memset(szCE,0,sizeof(int)*NUM_FACE);
     id = new int[NUM_FACE];
+    idCE = new int[NUM_FACE];
     for(int i=0;i<NUM_FACE;i++)
-        id[i] = i;
+        id[i] = idCE[i] = i;
     relationGraph = new char*[NUM_FACE];
     for(int i=0;i<NUM_FACE;i++)
     {
@@ -75,36 +78,85 @@ void UFface::unionFace(int p, int q)
     }
 }
 
+int UFface::findCommonEdge(int p)
+{
+    while(p != idCE[p])
+    {
+        idCE[p] = idCE[idCE[p]];
+        p = idCE[p];
+    }
+    return p;
+}
+
+void UFface::unionFaceCommonEdge(int p, int q)
+{
+    int fp = findCommonEdge(p);
+    int fq = findCommonEdge(q);
+    if(fp == fq)
+        return;
+    if(szCE[fp] > szCE[fq])
+    {
+        idCE[fq] = fp;
+        szCE[fp] += szCE[fq];
+    }
+    else
+    {
+        idCE[fp] = fq;
+        szCE[fq] += szCE[fp];
+    }
+}
+
 void UFface::unionFinal()
 {
     setRelation();
     for(int i=0;i<NUM_FACE;i++)
         for(int j=0;j<NUM_FACE;j++)
-            if(relationGraph[i][j]==1)
+        {
+            if(relationGraph[i][j]%2==1)
                 unionFace(i,j);
+            //有公共边
+            if((relationGraph[i][j]>>1)%2==1)
+                unionFaceCommonEdge(i,j);
+        }
     setCateSet();
     printf("unionFinal... num of Categories: %d\n",cateSet.size());
+    printf("unionFinal... num of CategoriesCommonEdge: %d\n",cateSetCommonEdge.size());
 }
 
 void UFface::setCateSet()
 {
     cateSet.clear();
+    cateSetCommonEdge.clear();
     for(int i=0;i<NUM_FACE;i++)
         cateSet.insert(find(i));
+    for(int i=0;i<NUM_FACE;i++)
+        cateSetCommonEdge.insert(findCommonEdge(i));
 }
 
 void UFface::reArrange()
 {
-    int pid = find(0);
-    for(int i=1;i<NUM_FACE;i++)
+    cate = new std::vector<int>[cateSetCommonEdge.size()];
+    std::set<int>::iterator it = cateSetCommonEdge.begin();
+    int index = 0;
+    for(;it!=cateSetCommonEdge.end();it++,index++)
+        for(int i=0;i<NUM_FACE;i++)
+            if(findCommonEdge(i)==*it)
+                cate[index].push_back(i);
+
+    for(int i=0;i < cateSetCommonEdge.size();i++)
     {
-        if(pid!=find(i))
+        int pid = find(cate[i][0]);
+        for(int j=1; j < cate[i].size();j++)
         {
-            int tmp = arrayFace[i][0];
-            arrayFace[i][0] = arrayFace[i][2];
-            arrayFace[i][2] = tmp;
+            if(find(cate[i][j]) != pid)
+            {
+                int tmp = arrayFace[cate[i][j]][0];
+                arrayFace[cate[i][j]][0] = arrayFace[cate[i][j]][2];
+                arrayFace[cate[i][j]][2] = tmp;
+            }
         }
     }
+
 }
 
 void UFface::printOut(QString fileName)
@@ -150,9 +202,18 @@ void UFface::checkIn(int i, int j)
         (unsigned long long)arrayFace[j][2]<<32 | (unsigned long long)arrayFace[j][1],
         (unsigned long long)arrayFace[j][0]<<32 | (unsigned long long)arrayFace[j][2]
     };
+    unsigned long long num2[3]={
+        (unsigned long long)arrayFace[j][0]<<32 | (unsigned long long)arrayFace[j][1],
+        (unsigned long long)arrayFace[j][1]<<32 | (unsigned long long)arrayFace[j][2],
+        (unsigned long long)arrayFace[j][2]<<32 | (unsigned long long)arrayFace[j][0]
+    };
     for(int i0 = 0; i0 < 3; i0++)
         for(int j0 = 0; j0 < 3 ; j0++)
+        {
             if(num0[i0]==num1[j0])
-                relationGraph[i][j] = 1;
+                relationGraph[i][j] += 3;
+            if(num0[i0]==num2[j0])
+                relationGraph[i][j] += 2;
+        }
 }
 
