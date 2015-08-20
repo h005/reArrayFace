@@ -114,7 +114,7 @@ void UFface::printOut(QString fileName)
     fileName.insert(len-4,"s");
     freopen(fileName.toStdString().c_str(),"w",stdout);
     char ss[80];
-    int numVer,numFace,numEdge,tmp;
+    int numVer,numFace,numEdge;
     gets(ss);
     puts(ss);
     scanf("%d %d %d\n",&numVer,&numFace,&numEdge);
