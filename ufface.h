@@ -39,6 +39,8 @@ public:
     void unionFinal();
     //存储不同面的不同类别
     void setCateSet();
+    //存储有公共边的不同面的不同类别
+    void setCateCommonEdgeSet();
     //重新修改面的顶点顺序
     void reArrange();
     //输出到文件中，命名方式为源文件名+'s'+后缀

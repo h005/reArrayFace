@@ -109,8 +109,8 @@ void UFface::unionFaceCommonEdge(int p, int q)
 void UFface::unionFinal()
 {
     setRelation();
-    for(int i=0;i<NUM_FACE;i++)
-        for(int j=0;j<NUM_FACE;j++)
+    for(int i=1;i<NUM_FACE;i++)
+        for(int j=0;j<i;j++)
         {
             if(relationGraph[i][j]%2==1)
                 unionFace(i,j);
@@ -118,17 +118,39 @@ void UFface::unionFinal()
             if((relationGraph[i][j]>>1)%2==1)
                 unionFaceCommonEdge(i,j);
         }
+    setCateCommonEdgeSet();
     setCateSet();
     printf("unionFinal... num of Categories: %d\n",cateSet.size());
     printf("unionFinal... num of CategoriesCommonEdge: %d\n",cateSetCommonEdge.size());
+
+    if(cateSet.size()==cateSetCommonEdge.size())
+        return;
+    do{
+        setRelation();
+        for(int i=1;i<NUM_FACE;i++)
+            for(int j=0;j<i;j++)
+                if(relationGraph[i][j]%2==1)
+                    unionFace(i,j);
+        setCateSet();
+        printf("unionFinal... num of Categories: %d\n",cateSet.size());
+        printf("unionFinal... num of CategoriesCommonEdge: %d\n",cateSetCommonEdge.size());
+        if(cateSet.size() == cateSetCommonEdge.size())
+            return;
+        reArrange();
+//        getchar();
+    }while(cateSet.size() != cateSetCommonEdge.size());
 }
 
 void UFface::setCateSet()
 {
     cateSet.clear();
-    cateSetCommonEdge.clear();
     for(int i=0;i<NUM_FACE;i++)
         cateSet.insert(find(i));
+}
+
+void UFface::setCateCommonEdgeSet()
+{
+    cateSetCommonEdge.clear();
     for(int i=0;i<NUM_FACE;i++)
         cateSetCommonEdge.insert(findCommonEdge(i));
 }
